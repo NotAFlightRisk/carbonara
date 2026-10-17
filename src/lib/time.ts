@@ -53,8 +53,15 @@ export function clock(time: number) {
   const local = london(time);
   return `${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}`;
 }
-/** "Fri 17 Oct" */
-export const day = (time: number) => dayFormat.format(time);
+/** "Fri 17 Oct", whatever punctuation the browser's locale data adds */
+export const day = (time: number) =>
+  dayFormat
+    .formatToParts(time)
+    .filter((part) => part.type !== 'literal')
+    .map((part) => part.value)
+    .join(' ');
+/** "17 Oct" */
+export const dayMonth = (time: number) => day(time).split(' ').slice(1).join(' ');
 export const weekday = (time: number) => weekdayFormat.format(time);
 /** "2026-10-17", good for grouping by London date */
 export const dateKey = (time: number) => london(time).toISOString().slice(0, 10);

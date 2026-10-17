@@ -1,6 +1,6 @@
 <script lang="ts">
   import { bandOf, colourOf } from '#lib/bands.js';
-  import { DAY, day } from '#lib/time.js';
+  import { DAY, dayMonth } from '#lib/time.js';
   import type { History } from '#lib/types.js';
   import Plate from './Plate.svelte';
   import Switch from './Switch.svelte';
@@ -27,7 +27,7 @@
   );
   const note = $derived(
     history
-      ? `Average for ${day(history.from).slice(4)} to ${day(history.to - DAY).slice(4)}, every year the API goes back`
+      ? `Average for ${dayMonth(history.from)} to ${dayMonth(history.to - DAY)}, every year the API goes back`
       : undefined
   );
 
