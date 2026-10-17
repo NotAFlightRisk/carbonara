@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { bandOf, colourOf } from '#lib/bands.js';
   import { fortnight, halfHourLabel, type Track } from '#lib/story.js';
-  import { day } from '#lib/time.js';
+  import { weekday } from '#lib/time.js';
   import BandKey from './BandKey.svelte';
   import Plate from './Plate.svelte';
   import Tip from './Tip.svelte';
@@ -17,17 +17,22 @@
   let cursor = $state<{ row: number; slot: number } | null>(null);
 
   const weeks = $derived(track ? fortnight(track, now) : null);
-  // 700-odd cells are a lot of server time for something below the fold, so they draw here
+  // the cells only ever draw in the browser
   let drawn = $state(false);
   onMount(() => (drawn = true));
   const rows = $derived(
     weeks
       ? [
           ...weeks.rows.map(({ date, cells }) => ({
-            label: day(Date.parse(date)).slice(0, 6),
+            key: date,
+            label: `${weekday(Date.parse(date))} ${Number(date.slice(8))}`,
             cells
           })),
-          { label: 'Usual', cells: weeks.usual.map((value) => (isNaN(value) ? null : value)) }
+          {
+            key: 'usual',
+            label: 'Usual',
+            cells: weeks.usual.map((value) => (isNaN(value) ? null : value))
+          }
         ]
       : []
   );
@@ -94,12 +99,12 @@
         onkeydown={step}
         onblur={() => (cursor = null)}
       >
-        {#each rows as row, r (row.label)}
-          <span class="day" class:usual={row.label === 'Usual'}>{row.label}</span>
+        {#each rows as row, r (row.key)}
+          <span class="day" class:usual={row.key === 'usual'}>{row.label}</span>
           {#each row.cells as value, slot (slot)}
             <span
               class="cell"
-              class:usual={row.label === 'Usual'}
+              class:usual={row.key === 'usual'}
               class:on={cursor?.row === r && cursor.slot === slot}
               data-row={r}
               data-slot={slot}
@@ -115,7 +120,7 @@
       {#if cursor && picked != null}
         <Tip x={(cursor.slot + 3) / 51} y={(cursor.row + 0.5) / (rows.length + 1)}>
           <strong
-            >{rows[cursor.row].label === 'Usual' ? 'Usual day' : rows[cursor.row].label}, {halfHourLabel(
+            >{rows[cursor.row].key === 'usual' ? 'Usual day' : rows[cursor.row].label}, {halfHourLabel(
               cursor.slot
             )}</strong
           ><br />
