@@ -18,7 +18,7 @@
   let { data }: PageProps = $props();
 
   const SAVED = 'carbonara:region';
-  const live = new Live(untrack(() => data.snapshot));
+  const live = new Live(untrack(() => (data.snapshot ? JSON.parse(data.snapshot) : null)));
   let region = $state(untrack(() => (REGIONS[data.region] ? data.region : 0)));
   let ready = $state(false);
   let clockNow = $state(0);

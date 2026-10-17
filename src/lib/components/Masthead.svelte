@@ -249,7 +249,7 @@
       min-width: 0;
       min-height: var(--tap);
       padding: 0 var(--space-3);
-      border: var(--hairline) solid var(--rule);
+      border: var(--hairline) solid var(--ink-faint);
       border-radius: var(--radius);
       background: var(--plate-sunk);
       text-transform: uppercase;

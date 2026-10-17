@@ -49,9 +49,8 @@
     }
 
     &.on {
-      background: var(--plate);
-      color: var(--ink);
-      box-shadow: 0 1px 2px rgb(0 0 0 / 0.12);
+      background: var(--ink);
+      color: var(--plate);
     }
 
     &:has(:focus-visible) {
