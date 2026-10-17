@@ -4,7 +4,7 @@ Need a hand? Here's where to go 👇
 
 ## Before you ask
 
-Have a look at the [README](./README.md), especially [Usage](./README.md#usage) and [Configuration](./README.md#configuration). Then search [existing issues](https://github.com/NotAFlightRisk/carbonara/issues?q=is%3Aissue), because someone's likely hit the same thing.
+Have a look at the [README](./README.md) first. Then search [existing issues](https://github.com/NotAFlightRisk/carbonara/issues?q=is%3Aissue), because someone's likely hit the same thing.
 
 ---
 
