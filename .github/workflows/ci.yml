@@ -1,0 +1,105 @@
+name: 🚦 CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: ${{ matrix.emoji }} ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: format
+            emoji: 🎨
+            run: npm run format:check
+          - label: types
+            emoji: 🔬
+            run: npm run check
+          - label: tests
+            emoji: 🧪
+            run: npm test
+          - label: build
+            emoji: 🏗️
+            run: npm run build
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: ${{ matrix.run }}
+
+  image:
+    name: 🐋 image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
+        with:
+          context: .
+          push: false
+          load: true
+          tags: carbonara:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Serve it and see if it answers
+        run: |
+          docker run -d --name ci -p 3000:3000 carbonara:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then
+              echo "up after ${i}s"
+              # 503 is the Carbon Intensity API having a moment, anything else is ours
+              code=$(curl -s -o /dev/null -w '%{http_code}' -m 60 http://127.0.0.1:3000/api/now)
+              echo "/api/now answered $code"
+              [ "$code" = 200 ] || [ "$code" = 503 ] || { docker logs ci; exit 1; }
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs ci
+          exit 1
+
+  summary:
+    name: 📋 summary
+    runs-on: ubuntu-latest
+    needs: [check, image]
+    if: always()
+    steps:
+      - name: Write the summary
+        env:
+          CHECKS: ${{ needs.check.result }}
+          IMAGE: ${{ needs.image.result }}
+        run: |
+          icon() {
+            case "$1" in
+              success) echo "✅ passed" ;;
+              skipped) echo "⏭️ skipped" ;;
+              cancelled) echo "🚫 cancelled" ;;
+              failure) echo "❌ failed" ;;
+              *) echo "❔ $1" ;;
+            esac
+          }
+          {
+            echo "| Job | Result |"
+            echo "| --- | --- |"
+            echo "| 🔍 checks | $(icon "$CHECKS") |"
+            echo "| 🐋 image | $(icon "$IMAGE") |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          [ "$CHECKS" = "success" ] && [ "$IMAGE" = "success" ]

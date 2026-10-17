@@ -1,0 +1,13 @@
+{
+  "name": "carbonara",
+  "short_name": "carbonara",
+  "description": "How clean Britain's electricity is right now",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e9edee",
+  "theme_color": "#13171c",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

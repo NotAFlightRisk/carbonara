@@ -1,0 +1,142 @@
+@import '@fontsource-variable/archivo/wdth.css';
+
+:root {
+  color-scheme: light dark;
+
+  --paper: light-dark(#e9edee, #0c0f13);
+  --plate: light-dark(#fbfcfc, #13171c);
+  --plate-sunk: light-dark(#f1f4f5, #191e24);
+  --ink: light-dark(#13171c, #e8ecf0);
+  --ink-soft: light-dark(#48525d, #a9b3be);
+  --ink-faint: light-dark(#8a949e, #5f6a76);
+  --rule: light-dark(#d3dadd, #252c34);
+  --grid: light-dark(#e2e9ea, #1e252c);
+  --plan: light-dark(#5b2bd0, #a98bff);
+  --plan-wash: light-dark(rgb(91 43 208 / 0.08), rgb(169 139 255 / 0.12));
+  --on-fill: #ffffff;
+
+  --band-very-low: light-dark(oklch(0.83 0.11 170), oklch(0.5 0.1 170));
+  --band-low: light-dark(oklch(0.77 0.14 135), oklch(0.58 0.13 135));
+  --band-moderate: light-dark(oklch(0.75 0.14 85), oklch(0.67 0.14 85));
+  --band-high: light-dark(oklch(0.62 0.16 45), oklch(0.7 0.17 45));
+  --band-very-high: light-dark(oklch(0.46 0.15 22), oklch(0.73 0.19 25));
+
+  --fuel-wind: light-dark(#2a78d6, #3987e5);
+  --fuel-hydro: light-dark(#1baf7a, #199e70);
+  --fuel-solar: light-dark(#eda100, #c98500);
+  --fuel-biomass: light-dark(#008300, #008300);
+  --fuel-imports: light-dark(#e87ba4, #d55181);
+  --fuel-nuclear: light-dark(#6250d6, #9085e9);
+  --fuel-gas: light-dark(#eb6834, #d95926);
+  --fuel-other: light-dark(#a1a9b0, #66707a);
+
+  --font: 'Archivo Variable', system-ui, sans-serif;
+  --wide: 118%;
+  --narrow: 82%;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 36px;
+  --space-7: 56px;
+  --radius: 4px;
+  --tap: 44px;
+  --hairline: 1px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --slow: 900ms;
+  --quick: 180ms;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 400 16px/1.45 var(--font);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: var(--plan);
+  color: var(--plate);
+}
+
+:focus-visible {
+  outline: 2px solid var(--plan);
+  outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--ink-faint);
+  text-underline-offset: 3px;
+
+  &:hover {
+    text-decoration-color: var(--plan);
+  }
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h2 {
+  font-size: clamp(1.25rem, 1.05rem + 0.8vw, 1.6rem);
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+svg text {
+  font-family: var(--font);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+html {
+  scrollbar-color: var(--ink-faint) var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,92 @@
+name: 🚀 Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: 🚀 Build and deploy
+    if: github.repository_owner == 'NotAFlightRisk'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://carbonara.peng.ly
+    steps:
+      - name: Check there's somewhere to deploy to
+        id: ready
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::No CLOUDFLARE_API_TOKEN secret yet, so nothing gets deployed"
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: steps.ready.outputs.go == 'true'
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        if: steps.ready.outputs.go == 'true'
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - run: npm ci
+        if: steps.ready.outputs.go == 'true'
+      - run: npm run check
+        if: steps.ready.outputs.go == 'true'
+      - run: npm test
+        if: steps.ready.outputs.go == 'true'
+      - run: npm run build
+        if: steps.ready.outputs.go == 'true'
+        env:
+          ADAPTER: cloudflare
+          PUBLIC_PLAUSIBLE_SCRIPT: ${{ vars.PUBLIC_PLAUSIBLE_SCRIPT }}
+          PUBLIC_SENTRY_DSN: ${{ vars.PUBLIC_SENTRY_DSN }}
+          SENTRY_URL: ${{ vars.SENTRY_URL }}
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+
+      - name: Push it to Cloudflare
+        if: steps.ready.outputs.go == 'true'
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Check the new build is live and reading the grid
+        if: steps.ready.outputs.go == 'true'
+        run: |
+          site=$(node -p "require('./package.json').homepage")
+          built=$(node -p "require('./.svelte-kit/cloudflare/_app/version.json').version")
+          for _ in $(seq 1 20); do
+            live=$(curl -fsS "$site/_app/version.json?$built" | node -pe "JSON.parse(require('fs').readFileSync(0)).version" 2>/dev/null || true)
+            [ "$live" = "$built" ] && break
+            sleep 6
+          done
+          if [ "$live" != "$built" ]; then
+            echo "❌ [$site]($site) is still serving $live, not $built" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          for _ in $(seq 1 20); do
+            readings=$(curl -fsS "$site/api/now" | node -pe "JSON.parse(require('fs').readFileSync(0)).gb.values.filter((v) => v !== null).length" 2>/dev/null || echo 0)
+            if [ "$readings" -gt 0 ]; then
+              echo "✅ [$site]($site) is reading the grid ($readings half hours)" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 6
+          done
+          echo "❌ [$site]($site) isn't getting anything from the Carbon Intensity API" >> "$GITHUB_STEP_SUMMARY"
+          exit 1

@@ -1,0 +1,53 @@
+name: 🏷️ Label
+
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: label-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    name: 🏷️ Sort by type
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && github.actor != 'dependabot[bot]'
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Take the label off the conventional commit type
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.pull_request.number }}
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          prefix=${TITLE%%:*}
+          type=${prefix%%(*}
+          case "${type%!}" in
+            feat) wanted=enhancement ;;
+            fix)  wanted=bug ;;
+            docs) wanted=documentation ;;
+            *)    wanted= ;;
+          esac
+          case "$prefix" in
+            *'!') wanted="${wanted:+$wanted,}breaking-change" ;;
+          esac
+          for label in enhancement bug documentation breaking-change; do
+            case ",$wanted," in
+              *",$label,"*) ;;
+              *) stale="${stale:+$stale,}$label" ;;
+            esac
+          done
+          args=(--remove-label "$stale")
+          if [ -n "$wanted" ]; then
+            args+=(--add-label "$wanted")
+          fi
+          gh pr edit "$NUMBER" "${args[@]}"
+          echo "### ${wanted:-no type label}" >> "$GITHUB_STEP_SUMMARY"

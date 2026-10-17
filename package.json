@@ -1,0 +1,50 @@
+{
+  "name": "carbonara",
+  "version": "0.1.0",
+  "description": "How clean Britain's electricity is right now, where, and when it'll be cleaner",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NotAFlightRisk/carbonara.git"
+  },
+  "homepage": "https://carbonara.peng.ly",
+  "engines": {
+    "node": "^22.12.0 || >=24.0.0"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "start": "node build/index.js",
+    "preview": "vite preview",
+    "prepare": "svelte-kit sync || echo ''",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run",
+    "regions": "node scripts/regions.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@sentry/browser": "^11.6.0",
+    "@sentry/vite-plugin": "^5.4.1",
+    "@sveltejs/adapter-cloudflare": "^8.0.0",
+    "@sveltejs/adapter-node": "^6.0.0",
+    "@sveltejs/kit": "^3.0.1",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/d3-shape": "^3.1.7",
+    "@types/node": "^26.6.4",
+    "d3-shape": "^3.2.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-svelte": "^4.1.1",
+    "svelte": "^5.57.2",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.3",
+    "wrangler": "^4.149.0"
+  },
+  "imports": {
+    "#lib/*": "./src/lib/*"
+  }
+}

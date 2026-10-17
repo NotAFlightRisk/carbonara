@@ -1,0 +1,50 @@
+# Keeps dependencies patched. Trim the ecosystems to match the project.
+# Docs: https://docs.github.com/code-security/dependabot/working-with-dependabot/dependabot-options-reference
+
+version: 2
+
+updates:
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+      - 'ci'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'javascript'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
+    groups:
+      # One PR for the routine bumps, rather than fifteen
+      minor-and-patch:
+        update-types:
+          - 'minor'
+          - 'patch'
+      svelte:
+        patterns:
+          - 'svelte'
+          - '@sveltejs/*'
+          - 'vite'
+
+  - package-ecosystem: 'docker'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    labels:
+      - 'dependencies'
+      - 'docker'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'

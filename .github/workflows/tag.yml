@@ -1,0 +1,82 @@
+name: 🏷️ Tag
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - '.github/**'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Which part to bump
+        type: choice
+        default: patch
+        options: [patch, minor, major]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tag
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: 🏷️ Next tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.next.outputs.tag }}
+      feature: ${{ steps.next.outputs.feature }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7 # zizmor: ignore[artipacked] this job pushes the tag
+        with:
+          fetch-depth: 0
+      - name: Work out the next version
+        id: next
+        env:
+          PART: ${{ inputs.bump || 'patch' }}
+        run: |
+          latest=$(git tag --list '[0-9]*' 'v[0-9]*' | sed 's/^v//' | sort -V | tail -n1)
+          IFS=. read -r major minor patch <<< "${latest:-0.1.0}"
+          case "$PART" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            *)     patch=$((patch + 1)) ;;
+          esac
+          tag="$major.$minor.$patch"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "feature=$([ "$PART" = patch ] && echo false || echo true)" >> "$GITHUB_OUTPUT"
+          echo "### $tag" >> "$GITHUB_STEP_SUMMARY"
+      - name: Push it
+        env:
+          TAG: ${{ steps.next.outputs.tag }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "$TAG"
+          git push origin "$TAG"
+
+  release:
+    name: 📦 Release
+    needs: tag
+    if: needs.tag.outputs.feature == 'true'
+    permissions:
+      contents: write
+    uses: ./.github/workflows/release.yml # zizmor: ignore[self-repository] actionlint can't read $/ yet
+    with:
+      tag: ${{ needs.tag.outputs.tag }}
+
+  docker:
+    name: 🐋 Docker
+    needs: tag
+    permissions:
+      contents: read
+      packages: write
+    secrets:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    uses: ./.github/workflows/docker.yml # zizmor: ignore[self-repository] actionlint can't read $/ yet
+    with:
+      tag: ${{ needs.tag.outputs.tag }}

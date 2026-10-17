@@ -1,0 +1,54 @@
+# Secrets & local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+
+# Node
+node_modules/
+.npm
+.pnpm-store/
+*.tsbuildinfo
+
+# SvelteKit
+.svelte-kit/
+/build/
+/dist/
+/.vercel/
+/.netlify/
+/.wrangler/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Test output
+/coverage/
+/playwright-report/
+/test-results/
+
+# Logs & temp files
+*.log
+tmp/
+temp/
+*.tmp
+
+# Editors & IDEs
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS crap
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+
+# Working notes - design, plan, debug and review scratch, never committed
+iains-notes/
+/.impeccable/
