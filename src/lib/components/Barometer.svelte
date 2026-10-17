@@ -83,8 +83,8 @@
       value
     )} grams per kilowatt hour, {band.name}. Tap the glass to settle the needle."
   >
-    <svg viewBox="0 0 400 330" aria-hidden="true">
-      <circle class="bezel" cx={CX} cy={CY} r="192" />
+    <svg viewBox="0 0 400 324" aria-hidden="true">
+      <path class="bezel" d="{arc(-128, 128, 192)}Z" />
       {#each bands as { band: section, from, to } (section.id)}
         <path class="band" d={arc(from, to, 160)} style:stroke={swatch(section)} />
         <path id="word-{section.id}" d={arc(from - 8, to + 8, 176)} fill="none" />
@@ -150,7 +150,7 @@
     width: min(100%, 440px);
     padding: 0;
     border: 0;
-    border-radius: 50% 50% 24px 24px;
+    border-radius: 50% 50% var(--radius) var(--radius);
     background: none;
     cursor: pointer;
   }
@@ -158,7 +158,6 @@
   svg {
     display: block;
     width: 100%;
-    overflow: visible;
   }
 
   .bezel {

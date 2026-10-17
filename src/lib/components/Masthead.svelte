@@ -1,16 +1,13 @@
 <script lang="ts">
   import { REGIONS, placeName } from '#lib/story.js';
   import { Theme } from '#lib/theme.svelte.js';
-  import { clock } from '#lib/time.js';
 
   interface Props {
     region: number;
-    fetched: number | null;
-    failing: boolean;
     onpick: (region: number) => void;
   }
 
-  let { region, fetched, failing, onpick }: Props = $props();
+  let { region, onpick }: Props = $props();
 
   const theme = new Theme();
   let postcode = $state('');
@@ -62,14 +59,6 @@
     <span>{placeName(region)}</span>
     <span class="sr-only">, change area</span>
   </button>
-
-  <p class="fresh" aria-live="polite">
-    {#if failing}
-      <span class="warn">Can't reach the grid, trying again soon</span>
-    {:else if fetched}
-      Updated {clock(fetched)}
-    {/if}
-  </p>
 
   <button
     type="button"
@@ -200,18 +189,6 @@
     }
   }
 
-  .fresh {
-    color: var(--ink-soft);
-    font-size: 0.85rem;
-    font-stretch: var(--narrow);
-    white-space: nowrap;
-  }
-
-  .warn {
-    color: var(--band-very-high);
-    font-weight: 600;
-  }
-
   .places {
     position: fixed;
     inset: 64px var(--space-4) auto auto;
@@ -302,18 +279,23 @@
 
   @media (max-width: 640px) {
     .masthead {
-      flex-wrap: wrap;
-      padding: var(--space-2) var(--space-4);
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
     }
 
     .mark {
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
     }
 
-    .fresh {
-      order: 5;
-      width: 100%;
-      margin-top: calc(-1 * var(--space-2));
+    .place {
+      min-width: 0;
+
+      span:not(.sr-only) {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
 </style>

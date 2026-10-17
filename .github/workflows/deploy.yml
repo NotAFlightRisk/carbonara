@@ -81,7 +81,7 @@ jobs:
             exit 1
           fi
           for _ in $(seq 1 20); do
-            readings=$(curl -fsS "$site/api/now" | node -pe "JSON.parse(require('fs').readFileSync(0)).gb.values.filter((v) => v !== null).length" 2>/dev/null || echo 0)
+            readings=$(curl -fsS -H 'Cache-Control: no-cache' "$site/api/now?deploy=$built" | node -pe "JSON.parse(require('fs').readFileSync(0)).gb.values.filter((v) => v !== null).length" 2>/dev/null || echo 0)
             if [ "$readings" -gt 0 ]; then
               echo "✅ [$site]($site) is reading the grid ($readings half hours)" >> "$GITHUB_STEP_SUMMARY"
               exit 0

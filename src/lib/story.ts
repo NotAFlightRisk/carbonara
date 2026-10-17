@@ -65,26 +65,41 @@ export function bestWindow(values: Series, from: number, slots: number) {
 
 /** The last 14 London days by half hour of the day, plus what a usual day looks like */
 export function fortnight(track: Track, now: number) {
-  const rows = new Map<string, (number | null)[]>();
-  const sums = Array.from({ length: 48 }, () => [] as number[]);
+  // the clocks going back gives one night two 01:00s, which share a cell
+  const days = new Map<string, number[][]>();
   track.values.forEach((value, i) => {
     const time = track.start + i * HALF_HOUR;
-    if (time > now || time < now - 14 * DAY) return;
+    if (value == null || time > now || time < now - 14 * DAY) return;
     const key = dateKey(time);
-    if (!rows.has(key)) rows.set(key, Array(48).fill(null));
-    const slot = halfHourOfDay(time);
-    rows.get(key)![slot] = value;
-    if (value != null) sums[slot].push(value);
+    if (!days.has(key))
+      days.set(
+        key,
+        Array.from({ length: 48 }, () => [])
+      );
+    days.get(key)![halfHourOfDay(time)].push(value);
   });
-  const usual = sums.map(mean);
+  const rows = [...days].slice(-14).map(([date, slots]) => ({
+    date,
+    cells: slots.map((slot) => (slot.length ? mean(slot) : null))
+  }));
+  const usual = Array.from({ length: 48 }, (_, slot) =>
+    mean(rows.flatMap((row) => (row.cells[slot] == null ? [] : [row.cells[slot]!])))
+  );
   const ranked = usual.map((value, slot) => ({ value, slot })).filter(({ value }) => !isNaN(value));
   ranked.sort((a, b) => a.value - b.value);
   return {
-    rows: [...rows].slice(-14).map(([date, cells]) => ({ date, cells })),
+    rows,
     usual,
     cleanest: ranked[0]?.slot ?? null,
     dirtiest: ranked.at(-1)?.slot ?? null
   };
+}
+
+/** The same London clock time a number of days back, even when the clocks changed in between */
+export function daysBack(time: number, days: number) {
+  const guess = time - days * DAY;
+  const drift = halfHourOfDay(time) - halfHourOfDay(guess);
+  return guess + (((drift + 72) % 48) - 24) * HALF_HOUR;
 }
 
 /** Which fuel's share moved most between the first and last reading of the day */

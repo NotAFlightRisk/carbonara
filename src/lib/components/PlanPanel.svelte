@@ -32,11 +32,11 @@
   });
   const timeOf = (index: number) => track!.start + index * HALF_HOUR;
 
-  const saving = $derived(
-    best && startingNow ? Math.round((1 - best.average / startingNow) * 100) : 0
-  );
+  const saving = $derived(best && startingNow ? (1 - best.average / startingNow) * 100 : null);
   // waiting for a saving you'd never notice isn't worth anyone's evening
-  const worthWaiting = $derived(best != null && best.index !== current && saving >= 5);
+  const worthWaiting = $derived(
+    best != null && best.index !== current && (saving == null || saving >= 5)
+  );
 
   const title = $derived.by(() => {
     if (!best) return 'Best time to plug in';
@@ -172,14 +172,13 @@
         Got something that runs for {hours} hour{hours > 1 ? 's' : ''}?
         {#if worthWaiting}
           Start it at <strong>{when(timeOf(best.index), now)}</strong> and it'll average
-          {Math.round(best.average)} g, {saving}% less than starting now.
+          {Math.round(best.average)} g{#if saving != null}, {Math.round(saving)}% less than starting
+            now{/if}.
         {:else if best.index === current}
           Start it now, it won't get any cleaner than {Math.round(best.average)} g.
         {:else}
-          Start it now. Waiting until {when(timeOf(best.index), now)} only saves {Math.max(
-            saving,
-            0
-          )}%.
+          Start it now. Waiting until {when(timeOf(best.index), now)} only saves
+          {Math.max(Math.round(saving ?? 0), 0)}%.
         {/if}
       </p>
     </div>
@@ -248,7 +247,7 @@
                   class="cell"
                   x={x(first + i) - (width - pad.left - pad.right) / (last - first) / 2}
                   y={height - pad.bottom + 6}
-                  width={(width - pad.left - pad.right) / (last - first) + 0.5}
+                  width={Math.max(1, (width - pad.left - pad.right) / (last - first) - 1)}
                   height="9"
                   fill={colourOf(value)}
                 />
@@ -294,7 +293,7 @@
     {:else}
       <div class="clock">
         <svg
-          viewBox="0 0 300 300"
+          viewBox="-12 -12 324 324"
           role="img"
           aria-label="The next 24 hours on a clock face, coloured by how clean the grid will be"
         >

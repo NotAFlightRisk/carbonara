@@ -12,6 +12,7 @@
   import { Live } from '#lib/live.svelte.js';
   import { description, imageAlt, name, site, source, structuredData, title } from '#lib/meta.js';
   import { REGIONS, latest, placeName, trackFor } from '#lib/story.js';
+  import { clock } from '#lib/time.js';
   import type { PageProps } from './$types';
 
   let { data }: PageProps = $props();
@@ -20,8 +21,11 @@
   const live = new Live(untrack(() => data.snapshot));
   let region = $state(untrack(() => (REGIONS[data.region] ? data.region : 0)));
   let ready = $state(false);
+  let clockNow = $state(0);
 
   const snapshot = $derived(live.snapshot);
+  // only judged in the browser, so the server and the first paint always agree
+  const old = $derived(ready && snapshot != null && clockNow - snapshot.fetched > 45 * 60_000);
   const now = $derived(snapshot?.now ?? 0);
   const track = $derived(snapshot ? trackFor(snapshot, region) : null);
   const intensity = $derived(track ? (latest(track, now)?.value ?? null) : null);
@@ -46,6 +50,8 @@
 
   onMount(() => {
     ready = true;
+    clockNow = Date.now();
+    const ticking = setInterval(() => (clockNow = Date.now()), 60_000);
     if (!data.region) {
       try {
         const saved = Number(localStorage.getItem(SAVED));
@@ -54,7 +60,11 @@
         // nothing saved we can read
       }
     }
-    return live.start();
+    const stop = live.start();
+    return () => {
+      clearInterval(ticking);
+      stop();
+    };
   });
 </script>
 
@@ -78,20 +88,28 @@
   {@html `<script type="application/ld+json">${structuredData}</script>`}
 </svelte:head>
 
-<Masthead {region} fetched={snapshot?.fetched ?? null} failing={live.failing} onpick={pick} />
+<Masthead {region} onpick={pick} />
 
 <main>
   <div class="intro">
     <h1>How clean Britain's electricity is, right now</h1>
     <p>
-      Grams of CO₂ for every unit of power, what's making it, and when it'll be cleaner. Times are
-      UK time, and it all refreshes by itself.
+      Grams of CO₂ for every unit of power, and when it'll be cleaner.
+      <span class="fresh" class:warn={live.failing || old} aria-live="polite">
+        {#if live.failing && snapshot}
+          Can't reach the grid, showing {clock(snapshot.fetched)}.
+        {:else if old && snapshot}
+          The API's gone quiet, these are from {clock(snapshot.fetched)}.
+        {:else if snapshot}
+          Updated {clock(snapshot.fetched)} UK time.
+        {/if}
+      </span>
     </p>
   </div>
 
   <div class="board">
     <NowPanel {track} gb={snapshot?.gb ?? null} history={data.history} {region} {now} />
-    <MixPanel {mix} {intensity} factors={data.history?.factors ?? null} place={placeName(region)} />
+    <MixPanel {mix} {intensity} factors={data.factors} place={placeName(region)} />
     <PlanPanel {track} {region} {now} />
     <MapPanel regions={snapshot?.regions ?? null} {now} {region} onpick={pick} />
     <StreamPanel mix={snapshot?.mix ?? null} />
@@ -121,7 +139,6 @@
   .intro {
     display: grid;
     gap: var(--space-2);
-    max-width: 62ch;
     padding: var(--space-3) 0 var(--space-5);
 
     h1 {
@@ -134,8 +151,15 @@
     }
 
     p {
+      max-width: 75ch;
       color: var(--ink-soft);
+      text-wrap: pretty;
     }
+  }
+
+  .fresh.warn {
+    color: var(--ink);
+    font-weight: 600;
   }
 
   .board {

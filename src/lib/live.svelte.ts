@@ -10,12 +10,23 @@ export class Live {
   failing = $state(false);
   #wait = EVERY;
   #timer?: ReturnType<typeof setTimeout>;
+  #busy = false;
+  #stopped = false;
 
   constructor(initial: Snapshot | null) {
     this.snapshot = initial;
   }
 
+  #schedule(wait: number) {
+    clearTimeout(this.#timer);
+    if (!this.#stopped && !document.hidden) this.#timer = setTimeout(() => this.refresh(), wait);
+  }
+
+  #stale = () => Date.now() - (this.snapshot?.fetched ?? 0) > EVERY;
+
   async refresh() {
+    if (this.#busy) return;
+    this.#busy = true;
     clearTimeout(this.#timer);
     try {
       // no-cache revalidates, where the default would sit on a 4h edge copy
@@ -27,21 +38,23 @@ export class Live {
     } catch {
       this.failing = true;
       this.#wait = Math.min(this.#wait * 2, RETRY_CEILING);
+    } finally {
+      this.#busy = false;
     }
-    if (!document.hidden) this.#timer = setTimeout(() => this.refresh(), this.#wait);
+    this.#schedule(this.#wait);
   }
 
   start() {
-    const stale = () => Date.now() - (this.snapshot?.fetched ?? 0) > EVERY;
-    if (!this.snapshot || stale()) this.refresh();
-    else this.#timer = setTimeout(() => this.refresh(), EVERY);
+    this.#stopped = false;
+    if (this.#stale()) this.refresh();
+    else this.#schedule(EVERY);
     const stop = on(document, 'visibilitychange', () => {
-      clearTimeout(this.#timer);
-      if (document.hidden) return;
-      if (stale()) this.refresh();
-      else this.#timer = setTimeout(() => this.refresh(), this.#wait);
+      if (document.hidden) clearTimeout(this.#timer);
+      else if (this.#stale()) this.refresh();
+      else this.#schedule(this.#wait);
     });
     return () => {
+      this.#stopped = true;
       stop();
       clearTimeout(this.#timer);
     };

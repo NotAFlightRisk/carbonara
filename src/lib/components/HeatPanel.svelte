@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { bandOf, colourOf } from '#lib/bands.js';
   import { fortnight, halfHourLabel, type Track } from '#lib/story.js';
   import { day } from '#lib/time.js';
+  import BandKey from './BandKey.svelte';
   import Plate from './Plate.svelte';
   import Tip from './Tip.svelte';
 
@@ -15,6 +17,9 @@
   let cursor = $state<{ row: number; slot: number } | null>(null);
 
   const weeks = $derived(track ? fortnight(track, now) : null);
+  // 700-odd cells are a lot of server time for something below the fold, so they draw here
+  let drawn = $state(false);
+  onMount(() => (drawn = true));
   const rows = $derived(
     weeks
       ? [
@@ -74,54 +79,58 @@
 
 <Plate id="heat" {title} {note} missing={!weeks || weeks.rows.length < 2}>
   <div class="heat">
-    <div
-      class="grid"
-      role="slider"
-      tabindex="0"
-      aria-label="Carbon intensity for each half hour of the last 14 days. Up and down change the day"
-      aria-valuemin={0}
-      aria-valuemax={rows.length * 48 - 1}
-      aria-valuenow={cursor ? cursor.row * 48 + cursor.slot : 0}
-      aria-valuetext={cursor ? describe(cursor) : 'Pick a half hour with the arrow keys'}
-      onpointermove={pick}
-      onpointerleave={() => (cursor = null)}
-      onkeydown={step}
-      onblur={() => (cursor = null)}
-    >
-      {#each rows as row, r (row.label)}
-        <span class="day" class:usual={row.label === 'Usual'}>{row.label}</span>
-        {#each row.cells as value, slot (slot)}
-          <span
-            class="cell"
-            class:usual={row.label === 'Usual'}
-            class:on={cursor?.row === r && cursor.slot === slot}
-            data-row={r}
-            data-slot={slot}
-            style:background={value != null ? colourOf(value) : null}
-          ></span>
+    {#if drawn}
+      <div
+        class="grid"
+        role="slider"
+        tabindex="0"
+        aria-label="Carbon intensity for each half hour of the last 14 days. Up and down change the day"
+        aria-valuemin={0}
+        aria-valuemax={rows.length * 48 - 1}
+        aria-valuenow={cursor ? cursor.row * 48 + cursor.slot : 0}
+        aria-valuetext={cursor ? describe(cursor) : 'Pick a half hour with the arrow keys'}
+        onpointermove={pick}
+        onpointerleave={() => (cursor = null)}
+        onkeydown={step}
+        onblur={() => (cursor = null)}
+      >
+        {#each rows as row, r (row.label)}
+          <span class="day" class:usual={row.label === 'Usual'}>{row.label}</span>
+          {#each row.cells as value, slot (slot)}
+            <span
+              class="cell"
+              class:usual={row.label === 'Usual'}
+              class:on={cursor?.row === r && cursor.slot === slot}
+              data-row={r}
+              data-slot={slot}
+              style:background={value != null ? colourOf(value) : null}
+            ></span>
+          {/each}
         {/each}
-      {/each}
-      <span></span>
-      {#each Array.from({ length: 48 }, (_, slot) => slot) as slot (slot)}
-        <span class="hour">{slot % 12 === 0 ? halfHourLabel(slot).slice(0, 2) : ''}</span>
-      {/each}
-    </div>
-    {#if cursor && picked != null}
-      <Tip x={(cursor.slot + 3) / 51} y={(cursor.row + 0.5) / (rows.length + 1)}>
-        <strong
-          >{rows[cursor.row].label === 'Usual' ? 'Usual day' : rows[cursor.row].label}, {halfHourLabel(
-            cursor.slot
-          )}</strong
-        ><br />
-        {Math.round(picked)} g · {bandOf(picked).name}
-      </Tip>
+        <span></span>
+        {#each Array.from({ length: 48 }, (_, slot) => slot) as slot (slot)}
+          <span class="hour">{slot % 12 === 0 ? halfHourLabel(slot).slice(0, 2) : ''}</span>
+        {/each}
+      </div>
+      {#if cursor && picked != null}
+        <Tip x={(cursor.slot + 3) / 51} y={(cursor.row + 0.5) / (rows.length + 1)}>
+          <strong
+            >{rows[cursor.row].label === 'Usual' ? 'Usual day' : rows[cursor.row].label}, {halfHourLabel(
+              cursor.slot
+            )}</strong
+          ><br />
+          {Math.round(picked)} g · {bandOf(picked).name}
+        </Tip>
+      {/if}
     {/if}
   </div>
+  <BandKey />
 </Plate>
 
 <style>
   .heat {
     position: relative;
+    min-height: 290px;
   }
 
   .grid {

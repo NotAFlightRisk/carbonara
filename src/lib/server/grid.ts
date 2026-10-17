@@ -1,6 +1,13 @@
 import { factorsOf } from '#lib/fuels.js';
 import { DAY, HALF_HOUR, slotOf } from '#lib/time.js';
-import { FUELS, type History, type Mix, type Series, type Snapshot } from '#lib/types.js';
+import {
+  FUELS,
+  type Factors,
+  type History,
+  type Mix,
+  type Series,
+  type Snapshot
+} from '#lib/types.js';
 import {
   api,
   isoMinute,
@@ -141,12 +148,19 @@ async function loadHistory(): Promise<History> {
     if (stats?.average)
       years.push({ year, min: stats.min, average: stats.average, max: stats.max });
   }
-  const [raw] = await api<Record<string, number>[]>('/intensity/factors');
-  return { from, to, years, factors: factorsOf(raw) };
+  if (years.length < 2)
+    throw new Error('Carbon Intensity API sent too few yearly stats to compare');
+  return { from, to, years };
 }
 
-export const snapshot = () => cached('snapshot', 5 * 60_000, loadSnapshot);
+async function loadFactors(): Promise<Factors> {
+  const [raw] = await api<Record<string, number>[]>('/intensity/factors');
+  return factorsOf(raw);
+}
+
+export const snapshot = () => cached('snapshot', 10 * 60_000, loadSnapshot);
 export const history = () => cached('history', 12 * 60 * 60_000, loadHistory);
+export const factors = () => cached('factors', 7 * DAY, loadFactors);
 
 const OUTWARD = /^[A-Z]{1,2}\d[A-Z\d]?$/;
 
