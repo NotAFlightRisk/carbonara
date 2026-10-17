@@ -5,12 +5,24 @@ export const DAY = 24 * HOUR;
 export const slotOf = (time: number) => Math.floor(time / HALF_HOUR) * HALF_HOUR;
 
 const zone = { timeZone: 'Europe/London' } as const;
-const offsetFormat = new Intl.DateTimeFormat('en-GB', { ...zone, timeZoneName: 'shortOffset' });
+const partsFormat = new Intl.DateTimeFormat('en-GB', {
+  ...zone,
+  hourCycle: 'h23',
+  year: 'numeric',
+  month: 'numeric',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric'
+});
 const offsets = new Map<number, number>();
 
+// how far London's wall clock sits from UTC at this moment
 const askOffset = (time: number) => {
-  const name = offsetFormat.formatToParts(time).find((part) => part.type === 'timeZoneName');
-  return Number(name?.value.slice(3) || 0) * HOUR;
+  const parts = Object.fromEntries(
+    partsFormat.formatToParts(time).map(({ type, value }) => [type, Number(value)])
+  );
+  const { year, month, day, hour, minute } = parts;
+  return Date.UTC(year, month - 1, day, hour, minute) - Math.floor(time / 60_000) * 60_000;
 };
 
 /** London's lead on UTC in ms, asked once a day, or per call on the two days the clocks change */
