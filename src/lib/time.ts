@@ -5,12 +5,29 @@ export const DAY = 24 * HOUR;
 export const slotOf = (time: number) => Math.floor(time / HALF_HOUR) * HALF_HOUR;
 
 const zone = { timeZone: 'Europe/London' } as const;
-const clockFormat = new Intl.DateTimeFormat('en-GB', {
-  ...zone,
-  hour: '2-digit',
-  minute: '2-digit',
-  hourCycle: 'h23'
-});
+const offsetFormat = new Intl.DateTimeFormat('en-GB', { ...zone, timeZoneName: 'shortOffset' });
+const offsets = new Map<number, number>();
+
+const askOffset = (time: number) => {
+  const name = offsetFormat.formatToParts(time).find((part) => part.type === 'timeZoneName');
+  return Number(name?.value.slice(3) || 0) * HOUR;
+};
+
+/** London's lead on UTC in ms, asked once a day, or per call on the two days the clocks change */
+function offsetOf(time: number) {
+  const midnight = Math.floor(time / DAY) * DAY;
+  if (!offsets.has(midnight)) {
+    if (offsets.size > 1000) offsets.clear();
+    const [start, end] = [askOffset(midnight), askOffset(midnight + DAY - 1)];
+    offsets.set(midnight, start === end ? start : NaN);
+  }
+  const offset = offsets.get(midnight)!;
+  return Number.isNaN(offset) ? askOffset(time) : offset;
+}
+
+const london = (time: number) => new Date(time + offsetOf(time));
+const pad = (value: number) => String(value).padStart(2, '0');
+
 const dayFormat = new Intl.DateTimeFormat('en-GB', {
   ...zone,
   weekday: 'short',
@@ -18,20 +35,22 @@ const dayFormat = new Intl.DateTimeFormat('en-GB', {
   month: 'short'
 });
 const weekdayFormat = new Intl.DateTimeFormat('en-GB', { ...zone, weekday: 'short' });
-const dateFormat = new Intl.DateTimeFormat('en-CA', zone);
 
 /** "07:30", always on the grid's own clock */
-export const clock = (time: number) => clockFormat.format(time);
+export function clock(time: number) {
+  const local = london(time);
+  return `${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}`;
+}
 /** "Fri 17 Oct" */
 export const day = (time: number) => dayFormat.format(time);
 export const weekday = (time: number) => weekdayFormat.format(time);
 /** "2026-10-17", good for grouping by London date */
-export const dateKey = (time: number) => dateFormat.format(time);
+export const dateKey = (time: number) => london(time).toISOString().slice(0, 10);
 
 /** Which half hour of the London day this is, 0 to 47 */
 export function halfHourOfDay(time: number) {
-  const [hours, minutes] = clock(time).split(':').map(Number);
-  return hours * 2 + (minutes >= 30 ? 1 : 0);
+  const local = london(time);
+  return local.getUTCHours() * 2 + (local.getUTCMinutes() >= 30 ? 1 : 0);
 }
 
 /** "today", "tomorrow" or the weekday, relative to `now` */
