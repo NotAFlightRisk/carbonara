@@ -75,17 +75,7 @@
   const readingOf = (id: number) => readings.find((reading) => reading.id === id)?.value ?? null;
   const hoveredValue = $derived(hovered ? readingOf(hovered) : null);
 
-  // the middle of each region's box, for pinning its tooltip
-  const centres = new Map(
-    shapes.regions.map(({ id, d }) => {
-      const points = d.match(/\d+,\d+/g)!.map((pair) => pair.split(',').map(Number));
-      const [xs, ys] = [points.map(([x]) => x), points.map(([, y]) => y)];
-      return [
-        id,
-        [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2]
-      ];
-    })
-  );
+  const centres = new Map(shapes.regions.map(({ id, centre }) => [id, centre]));
 </script>
 
 <Plate

@@ -60,8 +60,14 @@ const path = (ring) =>
     .join('L') +
   'Z';
 
+// the middle of each region's box, where its tooltip pins
+const centreOf = (rings) => {
+  const [x, y, width, height] = box(rings.flat());
+  return [Math.round(x + width / 2), Math.round(y + height / 2)];
+};
+
 const regions = shapes
-  .map(({ id, rings }) => ({ id, d: rings.map(path).join('') }))
+  .map(({ id, rings }) => ({ id, centre: centreOf(rings), d: rings.map(path).join('') }))
   .sort((a, b) => a.id - b.id);
 
 const out = {

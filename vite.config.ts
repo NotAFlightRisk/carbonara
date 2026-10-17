@@ -35,7 +35,7 @@ export default defineConfig({
       },
       adapter: cloudflareBuild ? cloudflare() : node(),
       csp: {
-        mode: 'hash',
+        mode: 'auto',
         directives: {
           'default-src': ['self'],
           'script-src': ['self', ...pulse],

@@ -189,14 +189,15 @@
   }
 
   .label {
-    fill: var(--on-fill);
+    fill: var(--ink);
     font-size: 11px;
     font-weight: 650;
     text-anchor: end;
     dominant-baseline: central;
     paint-order: stroke;
-    stroke: rgb(0 0 0 / 0.35);
-    stroke-width: 2.5px;
+    stroke: var(--plate);
+    stroke-width: 4px;
+    stroke-linejoin: round;
     pointer-events: none;
   }
 

@@ -16,7 +16,8 @@ export const load: PageServerLoad = async ({ url, setHeaders }) => {
     orNothing(factors())
   ]);
   return {
-    snapshot: now,
+    // one JSON string travels far cheaper than thousands of numbers through devalue
+    snapshot: now && JSON.stringify(now),
     history: past,
     factors: weights,
     region: Number(url.searchParams.get('region')) || 0
