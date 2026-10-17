@@ -10,13 +10,13 @@ Have a look at the [README](./README.md), especially [Usage](./README.md#usage) 
 
 ## Where to ask
 
-| I want to...                    | Go here                                                                                           |
-| ------------------------------- | ------------------------------------------------------------------------------------------------- |
+| I want to...                    | Go here                                                                                                |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Ask a question or share an idea | [Discussions](https://github.com/NotAFlightRisk/carbonara/discussions)                                 |
 | Report a bug                    | [Bug report](https://github.com/NotAFlightRisk/carbonara/issues/new?template=bug_report.yml)           |
 | Request a feature               | [Feature request](https://github.com/NotAFlightRisk/carbonara/issues/new?template=feature_request.yml) |
-| Report a vulnerability          | [Security policy](./SECURITY.md) - **not** a public issue                                         |
-| Contribute a change             | [Contributing guide](./CONTRIBUTING.md)                                                           |
+| Report a vulnerability          | [Security policy](./SECURITY.md) - **not** a public issue                                              |
+| Contribute a change             | [Contributing guide](./CONTRIBUTING.md)                                                                |
 
 ---
 
