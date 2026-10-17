@@ -40,6 +40,10 @@ export interface History {
   from: number;
   to: number;
   years: Year[];
-  /** gCO2/kWh per fuel, the API's own factors */
-  factors: Partial<Record<Fuel, number>>;
+}
+
+/** The API's own gCO2/kWh per fuel, plus the cleanest and dirtiest import cables */
+export interface Factors {
+  fuels: Partial<Record<Fuel, number>>;
+  imports: [number, number];
 }

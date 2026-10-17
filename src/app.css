@@ -11,6 +11,7 @@
   --ink-faint: light-dark(#8a949e, #5f6a76);
   --rule: light-dark(#d3dadd, #252c34);
   --grid: light-dark(#e2e9ea, #1e252c);
+  --ruling: light-dark(rgb(40 110 120 / 0.06), rgb(150 210 220 / 0.045));
   --plan: light-dark(#5b2bd0, #a98bff);
   --plan-wash: light-dark(rgb(91 43 208 / 0.08), rgb(169 139 255 / 0.12));
   --on-fill: #ffffff;

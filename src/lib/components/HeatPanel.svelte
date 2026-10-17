@@ -2,6 +2,7 @@
   import { bandOf, colourOf } from '#lib/bands.js';
   import { fortnight, halfHourLabel, type Track } from '#lib/story.js';
   import { day } from '#lib/time.js';
+  import BandKey from './BandKey.svelte';
   import Plate from './Plate.svelte';
   import Tip from './Tip.svelte';
 
@@ -117,6 +118,7 @@
       </Tip>
     {/if}
   </div>
+  <BandKey />
 </Plate>
 
 <style>

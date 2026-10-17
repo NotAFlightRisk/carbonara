@@ -1,7 +1,7 @@
 <script lang="ts">
   import { bandOf } from '#lib/bands.js';
-  import { latest, placeName, valueAt, type Track } from '#lib/story.js';
-  import { DAY, clock } from '#lib/time.js';
+  import { daysBack, latest, placeName, valueAt, type Track } from '#lib/story.js';
+  import { clock } from '#lib/time.js';
   import type { History } from '#lib/types.js';
   import Barometer from './Barometer.svelte';
   import Plate from './Plate.svelte';
@@ -28,7 +28,7 @@
       {
         value: 'yesterday',
         label: 'Yesterday',
-        compare: track && reading ? valueAt(track, reading.time - DAY) : null,
+        compare: track && reading ? valueAt(track, daysBack(reading.time, 1)) : null,
         says: 'this time yesterday'
       }
     ];
@@ -44,7 +44,7 @@
         {
           value: 'week',
           label: 'Last week',
-          compare: track && reading ? valueAt(track, reading.time - 7 * DAY) : null,
+          compare: track && reading ? valueAt(track, daysBack(reading.time, 7)) : null,
           says: 'this time last week'
         },
         {

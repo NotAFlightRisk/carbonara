@@ -6,6 +6,7 @@
   import { REGIONS, indexAt } from '#lib/story.js';
   import { HALF_HOUR, clock, day, when } from '#lib/time.js';
   import type { Snapshot } from '#lib/types.js';
+  import BandKey from './BandKey.svelte';
   import Plate from './Plate.svelte';
   import Switch from './Switch.svelte';
   import Tip from './Tip.svelte';
@@ -147,12 +148,16 @@
             height={inset[3] + 12}
             rx="4"
           />
+          <g class="underlay" aria-hidden="true">
+            {#each shapes.regions as shape (shape.id)}<path d={shape.d} />{/each}
+          </g>
           {#each drawn as shape (shape.id)}
             {@const value = readingOf(shape.id)}
             <path
               d={shape.d}
               class="region"
               class:mine={shape.id === region}
+              class:aside={region !== 0 && shape.id !== region && hovered !== shape.id}
               class:calm={calm.current}
               style:fill={value != null ? colourOf(value) : 'var(--plate-sunk)'}
               role="button"
@@ -212,6 +217,7 @@
         {/each}
       </ol>
     {/if}
+    <BandKey />
   {/if}
 </Plate>
 
@@ -272,12 +278,18 @@
     stroke-dasharray: 3 3;
   }
 
+  .underlay {
+    fill: var(--plate);
+  }
+
   .region {
     stroke: var(--plate);
     stroke-width: 1.5;
     stroke-linejoin: round;
     cursor: pointer;
-    transition: fill 260ms linear;
+    transition:
+      fill 260ms linear,
+      opacity var(--quick) var(--ease-out);
 
     &.calm {
       transition: none;
@@ -292,6 +304,10 @@
     &.mine {
       stroke: var(--plan);
       stroke-width: 3.5;
+    }
+
+    &.aside {
+      opacity: 0.5;
     }
   }
 

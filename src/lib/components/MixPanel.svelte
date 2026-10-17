@@ -3,13 +3,13 @@
   import { scale } from 'svelte/transition';
   import { MediaQuery } from 'svelte/reactivity';
   import { FUEL_NAMES, biggest, carbonShare, fuelColour, squares } from '#lib/fuels.js';
-  import { FUELS, type Fuel, type History, type Mix } from '#lib/types.js';
+  import { FUELS, type Factors, type Fuel, type Mix } from '#lib/types.js';
   import Plate from './Plate.svelte';
   import Switch from './Switch.svelte';
 
   interface Props {
     mix: Mix | null;
-    factors: History['factors'] | null;
+    factors: Factors | null;
     intensity: number | null;
     place: string;
   }
@@ -36,6 +36,10 @@
     mix && factors && intensity != null ? carbonShare(mix, factors, intensity) : null
   );
   const shown = $derived(view === 'carbon' && carbon ? carbon : mix);
+
+  $effect(() => {
+    if (!carbon) view = 'power';
+  });
   const counts = $derived(shown ? squares(shown) : null);
   const cells = $derived(
     counts
@@ -52,7 +56,7 @@
     if (view === 'carbon' && carbon) {
       const worst = biggest(carbon);
       const verb = worst === 'imports' ? 'make' : 'makes';
-      return `${FUEL_NAMES[worst]} ${verb} ${Math.round(carbon[worst])}% of the carbon`;
+      return `${FUEL_NAMES[worst]} ${verb} about ${Math.round(carbon[worst])}% of the carbon`;
     }
     const lead = biggest(mix);
     return mix[lead] < 30 ? "No one fuel's in charge" : LEADS[lead];
@@ -69,14 +73,16 @@
 
 <Plate id="mix" {title} {note} missing={!mix}>
   {#snippet tools()}
-    <Switch
-      label="Show share of"
-      options={[
-        { value: 'power', label: 'Power' },
-        { value: 'carbon', label: 'Carbon' }
-      ]}
-      bind:value={view}
-    />
+    {#if carbon}
+      <Switch
+        label="Show share of"
+        options={[
+          { value: 'power', label: 'Power' },
+          { value: 'carbon', label: 'Carbon' }
+        ]}
+        bind:value={view}
+      />
+    {/if}
   {/snippet}
 
   <div class="body">
@@ -121,10 +127,12 @@
 
 <style>
   .body {
+    flex: 1;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(9rem, 13rem);
+    grid-template-columns: minmax(0, 380px) minmax(10rem, 13rem);
     align-items: center;
-    gap: var(--space-5);
+    justify-content: center;
+    gap: var(--space-5) var(--space-6);
   }
 
   .waffle {
@@ -132,9 +140,7 @@
     grid-template-columns: repeat(10, 1fr);
     gap: 3px;
     width: 100%;
-    max-width: 300px;
     aspect-ratio: 1;
-    justify-self: center;
   }
 
   .square {

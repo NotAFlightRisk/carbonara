@@ -1,4 +1,4 @@
-import { FUELS, type Fuel, type Mix } from './types.ts';
+import { FUELS, type Factors, type Fuel, type Mix } from './types.ts';
 
 export const FUEL_NAMES: Record<Fuel, string> = {
   wind: 'Wind',
@@ -13,7 +13,7 @@ export const FUEL_NAMES: Record<Fuel, string> = {
 
 export const fuelColour = (fuel: Fuel) => `var(--fuel-${fuel})`;
 
-// imports come down cables with wildly different factors, so they're left out on purpose
+// imports come down cables with wildly different factors, so they're worked out separately
 const FACTOR_NAMES: Record<string, Fuel> = {
   Wind: 'wind',
   Hydro: 'hydro',
@@ -25,23 +25,26 @@ const FACTOR_NAMES: Record<string, Fuel> = {
 };
 
 /** The API's factors for the fuels its mix reports */
-export function factorsOf(raw: Record<string, number>) {
-  const factors: Partial<Record<Fuel, number>> = {};
+export function factorsOf(raw: Record<string, number>): Factors {
+  const fuels: Factors['fuels'] = {};
   for (const [name, value] of Object.entries(raw)) {
-    if (FACTOR_NAMES[name]) factors[FACTOR_NAMES[name]] = value;
+    if (FACTOR_NAMES[name]) fuels[FACTOR_NAMES[name]] = value;
   }
-  return factors;
+  const cables = Object.entries(raw)
+    .filter(([name]) => name.endsWith('Imports'))
+    .map(([, value]) => value);
+  return { fuels, imports: [Math.min(...cables), Math.max(...cables)] };
 }
 
-/** Each fuel's rough share of the carbon, imports getting whatever home power can't explain */
-export function carbonShare(
-  mix: Mix,
-  factors: Partial<Record<Fuel, number>>,
-  intensity: number
-): Mix {
-  const carbon = FUELS.map((fuel) => (fuel === 'imports' ? 0 : mix[fuel] * (factors[fuel] ?? 0)));
+/** Each fuel's rough share of the carbon, imports filling the gap within the API's cable range */
+export function carbonShare(mix: Mix, factors: Factors, intensity: number): Mix {
+  const carbon = FUELS.map((fuel) =>
+    fuel === 'imports' ? 0 : mix[fuel] * (factors.fuels[fuel] ?? 0)
+  );
   const domestic = carbon.reduce((sum, value) => sum + value, 0);
-  carbon[FUELS.indexOf('imports')] = mix.imports ? Math.max(0, intensity * 100 - domestic) : 0;
+  const [cleanest, dirtiest] = factors.imports.map((factor) => factor * mix.imports);
+  const leftover = intensity * 100 - domestic;
+  carbon[FUELS.indexOf('imports')] = Math.min(dirtiest, Math.max(cleanest, leftover));
   const total = carbon.reduce((sum, value) => sum + value, 0);
   return Object.fromEntries(
     FUELS.map((fuel, i) => [fuel, total ? (carbon[i] / total) * 100 : 0])

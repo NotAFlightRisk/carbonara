@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { bestWindow, biggestSwing, fortnight, latest } from '../../src/lib/story.ts';
-import { DAY, HALF_HOUR } from '../../src/lib/time.ts';
+import { bestWindow, biggestSwing, daysBack, fortnight, latest } from '../../src/lib/story.ts';
+import { DAY, HALF_HOUR, clock } from '../../src/lib/time.ts';
 import type { Mix } from '../../src/lib/types.ts';
 
 const mix = (wind: number, gas: number): Mix => ({
@@ -53,6 +53,28 @@ describe('fortnight', () => {
     expect(weeks.rows[0].cells[6]).toBe(10);
     expect(weeks.cleanest).toBe(6);
     expect(weeks.usual[0]).toBe(100);
+  });
+  it('shares the cell when the clocks go back and 01:00 happens twice', () => {
+    // 00:00 BST on Sun 25 Oct 2026, the night the clocks go back
+    const start = Date.parse('2026-10-24T23:00Z');
+    const values = Array.from({ length: 50 }, (_, i) => (i === 2 ? 40 : i === 4 ? 60 : 100));
+    const weeks = fortnight({ start, values, lastActual: start }, start + 50 * HALF_HOUR);
+    const night = weeks.rows.find((row) => row.date === '2026-10-25')!;
+    expect(night.cells[2]).toBe(50);
+    expect(weeks.usual[2]).toBe(50);
+  });
+});
+
+describe('daysBack', () => {
+  it('lands on the same London clock time after the clocks go back', () => {
+    const sunday = Date.parse('2026-10-25T09:00Z');
+    expect(clock(daysBack(sunday, 1))).toBe(clock(sunday));
+    expect(sunday - daysBack(sunday, 1)).toBe(DAY + 2 * HALF_HOUR);
+  });
+
+  it('is plain 24 hours on an ordinary day', () => {
+    const friday = Date.parse('2026-10-16T09:00Z');
+    expect(daysBack(friday, 7)).toBe(friday - 7 * DAY);
   });
 });
 

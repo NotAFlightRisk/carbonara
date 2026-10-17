@@ -38,7 +38,9 @@
     gap: var(--space-4);
     min-width: 0;
     padding: var(--space-5);
-    background: var(--plate);
+    background:
+      repeating-linear-gradient(0deg, var(--ruling) 0 1px, transparent 1px 24px),
+      repeating-linear-gradient(90deg, var(--ruling) 0 1px, transparent 1px 24px), var(--plate);
   }
 
   header {
