@@ -59,9 +59,10 @@ function refresh<T>(key: string, load: () => Promise<T>): Promise<T> {
 }
 
 /** Serves what we've got straight away, and fetches a fresh copy behind it once it's old */
-export async function cached<T>(key: string, freshFor: number, load: () => Promise<T>) {
+export async function cached<T>(key: string, freshFor: number, load: (old?: T) => Promise<T>) {
   const entry = await read<T>(key);
   if (!entry) return refresh(key, load);
-  if (Date.now() - entry.at > freshFor) waitUntil(refresh(key, load).catch((err) => report(err)));
+  if (Date.now() - entry.at > freshFor)
+    waitUntil(refresh(key, () => load(entry.value)).catch((err) => report(err)));
   return entry.value;
 }

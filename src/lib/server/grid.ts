@@ -1,5 +1,5 @@
 import { factorsOf } from '#lib/fuels.js';
-import { DAY, HALF_HOUR, slotOf } from '#lib/time.js';
+import { DAY, HALF_HOUR, HOUR, slotOf } from '#lib/time.js';
 import {
   FUELS,
   type Factors,
@@ -104,7 +104,11 @@ const settle = <T>(work: Promise<T>) =>
     return null;
   });
 
-async function loadSnapshot(): Promise<Snapshot> {
+/** Last time's copy of a section that's just failed, if it's under an hour behind */
+const fallback = <T extends { start: number }>(old: T | null | undefined, start: number) =>
+  old && old.start > start - HOUR ? old : null;
+
+async function loadSnapshot(old?: Snapshot): Promise<Snapshot> {
   const now = slotOf(Date.now());
   // the API files each period under the moment it ends, so ask from the end of the first one
   const after = (time: number) => isoMinute(time + HALF_HOUR);
@@ -125,7 +129,13 @@ async function loadSnapshot(): Promise<Snapshot> {
     )
   ]);
   if (!gb && !regions && !mix) throw new Error('Carbon Intensity API is unreachable');
-  return { fetched: Date.now(), now, gb, regions, mix };
+  return {
+    fetched: Date.now(),
+    now,
+    gb: gb ?? fallback(old?.gb, now - GB_BACK),
+    regions: regions ?? fallback(old?.regions, now - REGIONS_BACK),
+    mix: mix ?? fallback(old?.mix, now - DAY)
+  };
 }
 
 /** The same 30 days, every year the API has, one call a year */
