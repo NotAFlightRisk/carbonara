@@ -26,23 +26,23 @@
   },
   "devDependencies": {
     "@fontsource-variable/archivo": "^5.3.0",
-    "@sentry/browser": "^11.10.0",
-    "@sentry/vite-plugin": "^11.11.0",
+    "@sentry/browser": "^11.12.0",
+    "@sentry/vite-plugin": "^11.12.0",
     "@sveltejs/adapter-cloudflare": "^8.0.2",
-    "@sveltejs/adapter-node": "^6.0.1",
-    "@sveltejs/kit": "^3.1.1",
+    "@sveltejs/adapter-node": "^6.0.2",
+    "@sveltejs/kit": "^3.2.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/d3-shape": "^3.1.7",
     "@types/node": "^26.6.6",
     "d3-shape": "^3.2.1",
-    "prettier": "^3.9.9",
+    "prettier": "^3.10.0",
     "prettier-plugin-svelte": "^4.1.1",
     "svelte": "^5.57.3",
     "svelte-check": "^4.7.8",
     "typescript": "^6.0.3",
-    "vite": "^8.3.5",
+    "vite": "^8.3.8",
     "vitest": "^5.1.0",
-    "wrangler": "^4.157.0"
+    "wrangler": "^4.160.1"
   },
   "imports": {
     "#lib/*": "./src/lib/*"
