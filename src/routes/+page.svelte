@@ -122,9 +122,9 @@
   <p>
     Data from the <a href="https://carbonintensity.org.uk/">Carbon Intensity API</a> by NESO, under
     <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. Region shapes from
-    <a href="https://www.neso.energy/data-portal/gis-boundaries-gb-dno-license-areas"
-      >NESO's open data</a
-    >. Forecasts are forecasts, the weather gets a vote.
+    <a href="https://www.neso.energy/data-portal/gis-boundaries-gb-dno-license-areas">
+      NESO's open data
+    </a>. Forecasts are forecasts, the weather gets a vote.
   </p>
   <p><a href={source}>Source on GitHub</a></p>
 </footer>

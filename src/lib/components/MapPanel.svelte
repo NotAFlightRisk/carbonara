@@ -179,9 +179,9 @@
             {:else}
               No forecast
             {/if}
-            <br /><span class="soft"
-              >{hovered === region ? 'Your area, tap to clear' : 'Tap to make it yours'}</span
-            >
+            <br /><span class="soft">
+              {hovered === region ? 'Your area, tap to clear' : 'Tap to make it yours'}
+            </span>
           </Tip>
         {/if}
       </div>

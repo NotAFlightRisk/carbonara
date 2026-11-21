@@ -51,11 +51,11 @@
   </a>
 
   <button type="button" class="place" popovertarget="places">
-    <svg viewBox="0 0 16 16" aria-hidden="true"
-      ><path
+    <svg viewBox="0 0 16 16" aria-hidden="true">
+      <path
         d="M8 1.5a4.5 4.5 0 0 0-4.5 4.5c0 3.4 4.5 8.5 4.5 8.5s4.5-5.1 4.5-8.5A4.5 4.5 0 0 0 8 1.5zm0 6.2a1.7 1.7 0 1 1 0-3.4 1.7 1.7 0 0 1 0 3.4z"
-      /></svg
-    >
+      />
+    </svg>
     <span>{placeName(region)}</span>
     <span class="sr-only">, change area</span>
   </button>

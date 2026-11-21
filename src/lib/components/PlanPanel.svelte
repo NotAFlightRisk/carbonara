@@ -210,9 +210,9 @@
                 y2={y(zone.floor)}
               />
               {#if zone.tall > 14}
-                <text class="zone" x={width - pad.right + 8} y={y(zone.middle)}
-                  >{zone.band.name}</text
-                >
+                <text class="zone" x={width - pad.right + 8} y={y(zone.middle)}>
+                  {zone.band.name}
+                </text>
               {/if}
             {/each}
             {#each midnights as mark (mark.index)}
@@ -304,10 +304,9 @@
                 d={wedge(part.slot, part.slot + 1, R - 26, R)}
                 fill={colourOf(part.value)}
               >
-                <title
-                  >{clock(timeOf(part.index))}: {Math.round(part.value)} g, {bandOf(part.value)
-                    .name}</title
-                >
+                <title>
+                  {clock(timeOf(part.index))}: {Math.round(part.value)} g, {bandOf(part.value).name}
+                </title>
               </path>
             {/if}
           {/each}
