@@ -119,11 +119,11 @@
       </div>
       {#if cursor && picked != null}
         <Tip x={(cursor.slot + 3) / 51} y={(cursor.row + 0.5) / (rows.length + 1)}>
-          <strong
-            >{rows[cursor.row].key === 'usual' ? 'Usual day' : rows[cursor.row].label}, {halfHourLabel(
+          <strong>
+            {rows[cursor.row].key === 'usual' ? 'Usual day' : rows[cursor.row].label}, {halfHourLabel(
               cursor.slot
-            )}</strong
-          ><br />
+            )}
+          </strong><br />
           {Math.round(picked)} g · {bandOf(picked).name}
         </Tip>
       {/if}

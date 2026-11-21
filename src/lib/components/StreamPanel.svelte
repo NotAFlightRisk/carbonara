@@ -119,9 +119,9 @@
         {/each}
         {#each labelled as layer (layer.key)}
           {@const end = layer.at(-1)!}
-          <text class="label" x={width - 8} y={y((end[0] + end[1]) / 2)}
-            >{FUEL_NAMES[layer.key]}</text
-          >
+          <text class="label" x={width - 8} y={y((end[0] + end[1]) / 2)}>
+            {FUEL_NAMES[layer.key]}
+          </text>
         {/each}
         {#each [0, 0.25, 0.5, 0.75, 1] as fraction (fraction)}
           {@const index = Math.round(fraction * last)}
@@ -143,10 +143,10 @@
         <Tip x={x(cursor) / width} y={0.45}>
           <strong>{clock(timeOf(cursor))}</strong>
           {#each FUELS.filter((fuel) => reading[fuel] >= 1) as fuel (fuel)}
-            <span class="row"
-              ><span class="key" style:background={fuelColour(fuel)}></span>{FUEL_NAMES[fuel]}
-              {Math.round(reading[fuel])}%</span
-            >
+            <span class="row">
+              <span class="key" style:background={fuelColour(fuel)}></span>{FUEL_NAMES[fuel]}
+              {Math.round(reading[fuel])}%
+            </span>
           {/each}
         </Tip>
       {/if}
