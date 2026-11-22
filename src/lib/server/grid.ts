@@ -148,16 +148,16 @@ async function loadHistory(): Promise<History> {
     date.setUTCFullYear(date.getUTCFullYear() - years);
     return date.getTime();
   };
-  const years: History['years'] = [];
-  for (let year = FIRST_YEAR; year <= latest; year++) {
+  const yearOf = async (year: number): Promise<History['years']> => {
     const back = latest - year;
     const path = `/intensity/stats/${isoMinute(shift(from, back))}/${isoMinute(shift(to, back))}`;
     const stats = await api<{ intensity: { min: number; average: number; max: number } }[]>(path)
       .then(([first]) => first?.intensity)
       .catch(() => undefined);
-    if (stats?.average)
-      years.push({ year, min: stats.min, average: stats.average, max: stats.max });
-  }
+    return stats?.average ? [{ year, min: stats.min, average: stats.average, max: stats.max }] : [];
+  };
+  const asked = Array.from({ length: latest - FIRST_YEAR + 1 }, (_, i) => FIRST_YEAR + i);
+  const years = (await Promise.all(asked.map(yearOf))).flat();
   if (years.length < 2)
     throw new Error('Carbon Intensity API sent too few yearly stats to compare');
   return { from, to, years };
