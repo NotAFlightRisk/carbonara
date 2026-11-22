@@ -24,22 +24,26 @@ describe('carbonShare', () => {
   const factors = { fuels: { wind: 0, gas: 400 }, imports: [50, 500] as [number, number] };
 
   it('puts the carbon on the fuels that make it, not the ones making the power', () => {
-    const share = carbonShare(mixOf({ wind: 75, gas: 25 }), factors, 100);
+    const share = carbonShare(mixOf({ wind: 75, gas: 25 }), factors, 100)!;
     expect(share.gas).toBeCloseTo(100);
     expect(share.wind).toBe(0);
   });
 
   it('gives imports whatever the intensity leaves unexplained', () => {
-    const share = carbonShare(mixOf({ wind: 70, gas: 10, imports: 20 }), factors, 60);
+    const share = carbonShare(mixOf({ wind: 70, gas: 10, imports: 20 }), factors, 60)!;
     expect(share.imports).toBeCloseTo((2000 / 6000) * 100);
     expect(share.gas).toBeCloseTo((4000 / 6000) * 100);
   });
 
   it("keeps imports within the API's cleanest and dirtiest cable", () => {
-    const tooClean = carbonShare(mixOf({ gas: 50, imports: 50 }), factors, 150);
+    const tooClean = carbonShare(mixOf({ gas: 50, imports: 50 }), factors, 150)!;
     expect(tooClean.imports).toBeCloseTo((2500 / 22500) * 100);
-    const tooDirty = carbonShare(mixOf({ wind: 90, imports: 10 }), factors, 200);
+    const tooDirty = carbonShare(mixOf({ wind: 90, imports: 10 }), factors, 200)!;
     expect(tooDirty.imports).toBe(100);
+  });
+
+  it('has nothing to share when everything running is zero carbon', () => {
+    expect(carbonShare(mixOf({ wind: 70, nuclear: 30 }), factors, 0)).toBeNull();
   });
 });
 
