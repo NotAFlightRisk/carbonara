@@ -37,7 +37,7 @@ export function factorsOf(raw: Record<string, number>): Factors {
 }
 
 /** Each fuel's rough share of the carbon, imports filling the gap within the API's cable range */
-export function carbonShare(mix: Mix, factors: Factors, intensity: number): Mix {
+export function carbonShare(mix: Mix, factors: Factors, intensity: number): Mix | null {
   const carbon = FUELS.map((fuel) =>
     fuel === 'imports' ? 0 : mix[fuel] * (factors.fuels[fuel] ?? 0)
   );
@@ -46,9 +46,8 @@ export function carbonShare(mix: Mix, factors: Factors, intensity: number): Mix 
   const leftover = intensity * 100 - domestic;
   carbon[FUELS.indexOf('imports')] = Math.min(dirtiest, Math.max(cleanest, leftover));
   const total = carbon.reduce((sum, value) => sum + value, 0);
-  return Object.fromEntries(
-    FUELS.map((fuel, i) => [fuel, total ? (carbon[i] / total) * 100 : 0])
-  ) as Mix;
+  if (!total) return null;
+  return Object.fromEntries(FUELS.map((fuel, i) => [fuel, (carbon[i] / total) * 100])) as Mix;
 }
 
 /** Whole squares for a 100 square waffle, largest remainders rounding up */
