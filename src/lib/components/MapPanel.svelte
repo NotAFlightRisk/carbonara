@@ -53,10 +53,7 @@
     return `Cleanest in ${cleanest.name}, dirtiest in ${dirtiest.name}`;
   });
 
-  // the selected region draws last, so its outline sits on top of its neighbours
-  const drawn = $derived(
-    shapes.regions.toSorted((a, b) => Number(a.id === region) - Number(b.id === region))
-  );
+  const picked = $derived(shapes.regions.find((shape) => shape.id === region));
 
   $effect(() => {
     if (!playing) return;
@@ -141,12 +138,11 @@
           <g class="underlay" aria-hidden="true">
             {#each shapes.regions as shape (shape.id)}<path d={shape.d} />{/each}
           </g>
-          {#each drawn as shape (shape.id)}
+          {#each shapes.regions as shape (shape.id)}
             {@const value = readingOf(shape.id)}
             <path
               d={shape.d}
               class="region"
-              class:mine={shape.id === region}
               class:aside={region !== 0 && shape.id !== region && hovered !== shape.id}
               class:calm={calm.current}
               style:fill={value != null ? colourOf(value) : 'var(--plate-sunk)'}
@@ -169,6 +165,8 @@
               }}
             />
           {/each}
+          <!-- drawn last, so the outline sits on top of its neighbours -->
+          {#if picked}<path class="outline" d={picked.d} aria-hidden="true" />{/if}
         </svg>
         {#if hovered}
           {@const [cx, cy] = centres.get(hovered)!}
@@ -291,14 +289,17 @@
       outline: none;
     }
 
-    &.mine {
-      stroke: var(--plan);
-      stroke-width: 3.5;
-    }
-
     &.aside {
       opacity: 0.5;
     }
+  }
+
+  .outline {
+    fill: none;
+    stroke: var(--plan);
+    stroke-width: 3.5;
+    stroke-linejoin: round;
+    pointer-events: none;
   }
 
   .rank {
